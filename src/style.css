@@ -1,0 +1,54 @@
+table {
+  margin: 20px auto;
+  width: 80vw;
+  height: 80vh;
+  border-collapse: collapse;
+  table-layout: fixed;
+  border-spacing: 0;
+}
+th {
+  background-color: rgba(128, 128, 128, 0.404);
+}
+th,
+td {
+  border: 1px solid black;
+  padding: 0;
+}
+th:first-child,
+td:first-child {
+  width: 20%;
+}
+td:first-child {
+  vertical-align: top;
+}
+.section-figures {
+  display: flex;
+  padding: 5%;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  align-content: space-between;
+  height: 120px;
+}
+.circle {
+  height: 50px;
+  width: 50px;
+  background-color: blue;
+  border-radius: 50%;
+
+}
+.square {
+  background-color: green;
+}
+.square,
+.circle {
+  color: transparent;  
+  height: 50px;
+  width: 50px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+.section-canvas {
+  height: 100%;
+  width: 100%;
+}
