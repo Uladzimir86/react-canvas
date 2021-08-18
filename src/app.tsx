@@ -4,9 +4,7 @@ import Canvas from './canvas';
 const App = (): ReactElement => {
 
   function dragStartHandler(e: React.DragEvent) {
-    const data = `${e.target.id}
-      X${e.clientX - e.target.getBoundingClientRect().x}
-      Y${e.clientY - e.target.getBoundingClientRect().y}`;
+    const data = `${e.target.id}X${e.clientX - e.target.getBoundingClientRect().x}Y${e.clientY - e.target.getBoundingClientRect().y}`;
     e.dataTransfer.setData("text/plain", data);
   }
 
