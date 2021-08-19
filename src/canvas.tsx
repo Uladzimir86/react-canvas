@@ -9,9 +9,10 @@ interface Figure {
 }
 
 const Canvas = (): ReactElement => {
-  const arrFigures = [] as Figure[];
+  let arrFigures = [] as Figure[];
   const radiusCircle = 25;
   const canvasRef = useRef(null);
+
   useEffect(() => {
     document.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.code === 'Delete') {
@@ -22,6 +23,10 @@ const Canvas = (): ReactElement => {
         }
       }
     })
+    if (sessionStorage.length) {
+      arrFigures = [...JSON.parse(sessionStorage.getItem('arrFigures'))];
+      deleteBorder();
+    }
   }, [])
   const drawFigures = () => {
     const canvas = canvasRef.current;
@@ -57,7 +62,15 @@ const Canvas = (): ReactElement => {
       default:
     }
   }
-
+  function deleteBorder() {
+    const canvas = canvasRef.current;
+      canvas.getContext('2d').clearRect(0, 0, 700, 600);
+      for (let i = 0; i < arrFigures.length; i += 1) {
+        const {x, y, fig}: Figure = arrFigures[i];
+        draw(x , y, canvas, fig, false );
+        arrFigures[i].isBorder = false;
+    }
+  }
   function dropHandler(event: React.DragEvent<HTMLCanvasElement>) {
     const canvasCoordinates = event.target.getBoundingClientRect();
     const data = event.dataTransfer.getData("text/plain");
@@ -70,10 +83,12 @@ const Canvas = (): ReactElement => {
     if(canvas) {
        draw(figureX, figureY, canvas, figure);
        arrFigures.push({x: figureX, y: figureY, fig: figure, isDrag: false, isBorder: false});
+       sessionStorage.setItem('arrFigures', JSON.stringify(arrFigures));
     }
   }
 
-  function checkMouseDown(e: any){
+  function mouseDownHandler(e: any){
+    e.preventDefault();
     const cursor = {
       x: e.clientX - e.target.getBoundingClientRect().x,
       y: e.clientY - e.target.getBoundingClientRect().y,
@@ -84,14 +99,8 @@ const Canvas = (): ReactElement => {
     };
 
     if (arrFigures.length) {
+      deleteBorder();
       const canvas = canvasRef.current;
-      canvas.getContext('2d').clearRect(0, 0, 700, 600);
-      for (let i = 0; i < arrFigures.length; i += 1) {
-        const {x, y, fig}: Figure = arrFigures[i];
-        draw(x , y, canvas, fig, false );
-        arrFigures[i].isBorder = false;
-      }
-
       for (let i = arrFigures.length - 1; i >= 0; i -= 1) {
         const {x, y, fig}: Figure = arrFigures[i];
         if ((fig === 'square' && cursor.x > x && cursor.x < (x + 50) && cursor.y > y && cursor.y < (y + 50)) || 
@@ -108,7 +117,7 @@ const Canvas = (): ReactElement => {
       }
     }
   }
-  function checkMouseUp(e: any) {
+  function mouseUpHandler(e: any) {
     if (arrFigures.length) {
       for (let i = 0; i < arrFigures.length; i += 1) {
         if (arrFigures[i].isDrag) {
@@ -119,11 +128,13 @@ const Canvas = (): ReactElement => {
           };
           arrFigures[i].x = cursor.x - coordCursorOnFigure.dx;
           arrFigures[i].y = cursor.y - coordCursorOnFigure.dy;
+          sessionStorage.setItem('arrFigures', JSON.stringify(arrFigures));
         }
       }
     }
   }
-  function checkMouseMove(e: any) {
+  function mouseMoveHandler(e: any) {
+    e.preventDefault();
     if (arrFigures.length) {
       const canvas = canvasRef.current;
       canvas.getContext('2d').clearRect(0, 0, 700, 600);
@@ -139,11 +150,12 @@ const Canvas = (): ReactElement => {
       }
     }
   }
-  function checkMouseLeave() {
+  function mouseLeaveHandler() {
     if (arrFigures.length) {
       for (let i = 0; i < arrFigures.length; i += 1) {
         if (arrFigures[i].isDrag) {
           arrFigures.splice(i, 1);
+          sessionStorage.setItem('arrFigures', JSON.stringify(arrFigures));
           drawFigures();
         }
       }
@@ -154,14 +166,14 @@ const Canvas = (): ReactElement => {
     <canvas ref={canvasRef} width='700' height="600" className="canvas"
       onDragOver={(event)=>event.preventDefault()}
       onDrop={(event)=>dropHandler(event)}
-      onMouseDown={checkMouseDown}
-      onMouseUp={checkMouseUp}
-      onMouseMove={checkMouseMove}
-      onMouseLeave={checkMouseLeave}
+      onMouseDown={mouseDownHandler}
+      onMouseUp={mouseUpHandler}
+      onMouseMove={mouseMoveHandler}
+      onMouseLeave={mouseLeaveHandler}
     >
       Your browser do not support Canvas...
     </canvas>
   )
 }
 
-export default Canvas
+export default Canvas;
