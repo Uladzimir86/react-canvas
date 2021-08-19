@@ -9,8 +9,18 @@ interface Figure {
 }
 
 const Canvas = (): ReactElement => {
+
   let arrFigures = [] as Figure[];
   const radiusCircle = 25;
+  let startDrag: {
+    x: number,
+    y: number,
+  };
+  let coordCursorOnFigure: {
+    dx: number,
+    dy: number,
+  };
+
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -28,6 +38,7 @@ const Canvas = (): ReactElement => {
       deleteBorder();
     }
   }, [])
+
   const drawFigures = () => {
     const canvas = canvasRef.current;
     canvas.getContext('2d').clearRect(0, 0, 700, 600);
@@ -35,14 +46,6 @@ const Canvas = (): ReactElement => {
       draw(x, y, canvas, fig, false);
     })
   }
-  let startDrag: {
-    x: number,
-    y: number,
-  };
-  let coordCursorOnFigure: {
-    dx: number,
-    dy: number,
-  };
 
   const draw = (x: number, y: number, canvas: HTMLCanvasElement, figure = 'circle', border = false) => {
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -117,6 +120,7 @@ const Canvas = (): ReactElement => {
       }
     }
   }
+
   function mouseUpHandler(e: any) {
     if (arrFigures.length) {
       for (let i = 0; i < arrFigures.length; i += 1) {
@@ -133,6 +137,7 @@ const Canvas = (): ReactElement => {
       }
     }
   }
+
   function mouseMoveHandler(e: any) {
     e.preventDefault();
     if (arrFigures.length) {
@@ -150,6 +155,7 @@ const Canvas = (): ReactElement => {
       }
     }
   }
+
   function mouseLeaveHandler() {
     if (arrFigures.length) {
       for (let i = 0; i < arrFigures.length; i += 1) {
@@ -162,7 +168,33 @@ const Canvas = (): ReactElement => {
     }
   }
 
+  function saveCanvas() {
+    if (arrFigures.length) {
+      const blob = new Blob([JSON.stringify(arrFigures)], {type : 'application/json'});
+      const link = document.createElement('a');
+      link.download = "canvas.json";
+      link.href = URL.createObjectURL(blob);
+      link.click();
+    } else alert('Nothing to save...')
+  }
+  
+  function importCanvas(e: any) {
+    const file = e.target.files[0];
+    if (file && file.name.slice(-5) === '.json') {
+       const reader = new FileReader();
+       reader.onload = function(evt) {
+         const data = JSON.parse(evt.target.result);
+         if ( Array.isArray(data)) {
+           arrFigures = [...data];
+           drawFigures();
+         } else alert('You chose incorrect file! Please, try another one...');
+       }
+       reader.readAsText(file);
+    } else alert('Please, choose JSON file...');
+  }
+
   return (
+    <>
     <canvas ref={canvasRef} width='700' height="600" className="canvas"
       onDragOver={(event)=>event.preventDefault()}
       onDrop={(event)=>dropHandler(event)}
@@ -173,6 +205,13 @@ const Canvas = (): ReactElement => {
     >
       Your browser do not support Canvas...
     </canvas>
+    <div className="button-container">
+      <button type="button" className="button" onClick={saveCanvas}>save</button>
+      <button className="button" type="button">import
+        <input type="file" className="button-input" onChange={importCanvas} />
+      </button> 
+    </div>
+    </>
   )
 }
 

@@ -4,7 +4,6 @@
 table {
   margin: 20px auto;
   width: 800px;
-  height: 80vh;
   border-collapse: collapse;
   table-layout: fixed;
   border-spacing: 0;
@@ -55,10 +54,39 @@ td:first-child {
   cursor: pointer;
 }
 .section-canvas {
+  height: fit-content;
   position: relative;
 }
 .canvas {
   position: absolute;
   left: 0;
   top: 0;
+}
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  top: 350px;
+  width: 50%;
+  margin: 10px auto;
+}
+.button {
+  display: block;
+  position: relative;
+  width: 45%;
+  border-radius: 5px;
+  background-color: rgba(243, 181, 10, 0.932);
+  cursor: pointer;
+}
+.button-input {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.button:hover {
+  opacity: 80%;
 }
