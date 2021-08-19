@@ -1,4 +1,4 @@
-import React, { ReactElement, useRef } from 'react'
+import React, { ReactElement, useRef, useEffect } from 'react'
 
 interface Figure {
   x: number,
@@ -9,9 +9,27 @@ interface Figure {
 }
 
 const Canvas = (): ReactElement => {
+  const arrFigures = [] as Figure[];
   const radiusCircle = 25;
   const canvasRef = useRef(null);
-  const arrFigures = [] as Figure[];
+  useEffect(() => {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.code === 'Delete') {
+        const index = arrFigures.findIndex(item => item.isBorder)
+        if (index >= 0) {
+          arrFigures.splice(index, 1);
+          drawFigures();
+        }
+      }
+    })
+  }, [])
+  const drawFigures = () => {
+    const canvas = canvasRef.current;
+    canvas.getContext('2d').clearRect(0, 0, 700, 600);
+    arrFigures.forEach(({x, y, fig}: Figure) => {
+      draw(x, y, canvas, fig, false);
+    })
+  }
   let startDrag: {
     x: number,
     y: number,
@@ -121,21 +139,17 @@ const Canvas = (): ReactElement => {
       }
     }
   }
-  function checkMouseLeave(e) {
+  function checkMouseLeave() {
     if (arrFigures.length) {
       for (let i = 0; i < arrFigures.length; i += 1) {
         if (arrFigures[i].isDrag) {
-          arrFigures[i].isDrag = false;
-          const cursor = {
-            x: e.clientX - e.target.getBoundingClientRect().x,
-            y: e.clientY - e.target.getBoundingClientRect().y,
-          };
-          arrFigures[i].x = Math.min(cursor.x - coordCursorOnFigure.dx, 650);
-          arrFigures[i].y = Math.min(cursor.y - coordCursorOnFigure.dy, 550);
+          arrFigures.splice(i, 1);
+          drawFigures();
         }
       }
     }
   }
+
   return (
     <canvas ref={canvasRef} width='700' height="600" className="canvas"
       onDragOver={(event)=>event.preventDefault()}
@@ -143,7 +157,8 @@ const Canvas = (): ReactElement => {
       onMouseDown={checkMouseDown}
       onMouseUp={checkMouseUp}
       onMouseMove={checkMouseMove}
-      onMouseLeave={checkMouseLeave}>
+      onMouseLeave={checkMouseLeave}
+    >
       Your browser do not support Canvas...
     </canvas>
   )
