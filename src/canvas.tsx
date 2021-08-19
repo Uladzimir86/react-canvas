@@ -4,11 +4,22 @@ interface Figure {
   x: number,
   y: number,
   fig: string,
+  isBorder: boolean,
+  isDrag: boolean,
 }
+
 const Canvas = (): ReactElement => {
   const radiusCircle = 25;
   const canvasRef = useRef(null);
   const arrFigures = [] as Figure[];
+  let startDrag: {
+    x: number,
+    y: number,
+  };
+  let coordCursorOnFigure: {
+    dx: number,
+    dy: number,
+  };
 
   const draw = (x: number, y: number, canvas: HTMLCanvasElement, figure = 'circle', border = false) => {
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -37,52 +48,102 @@ const Canvas = (): ReactElement => {
     const coordCursorOnFigureY = Number(data.slice(data.indexOf('Y') + 1))
     const figureX = event.clientX - canvasCoordinates.x - coordCursorOnFigureX;
     const figureY = event.clientY - canvasCoordinates.y - coordCursorOnFigureY;
-    if (canvasRef) {
-      const canvas = canvasRef.current;
-      if(canvas) {
-         draw(figureX, figureY, canvas, figure);
-         arrFigures.push({x: figureX, y: figureY, fig: figure});
-      }
+    const canvas = canvasRef.current;
+    if(canvas) {
+       draw(figureX, figureY, canvas, figure);
+       arrFigures.push({x: figureX, y: figureY, fig: figure, isDrag: false, isBorder: false});
     }
   }
+
   function checkMouseDown(e: any){
     const cursor = {
-      x: e.clientX - e.target?.getBoundingClientRect().x,
-      y: e.clientY - e.target?.getBoundingClientRect().y,
-    }
+      x: e.clientX - e.target.getBoundingClientRect().x,
+      y: e.clientY - e.target.getBoundingClientRect().y,
+    };
+    startDrag = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+
     if (arrFigures.length) {
       const canvas = canvasRef.current;
       canvas.getContext('2d').clearRect(0, 0, 700, 600);
-      arrFigures.forEach(item => {
-        draw(item.x , item.y, canvas, item.fig, false );
-      })
-        for (let i = arrFigures.length - 1; i >= 0; i -= 1) {
-         const {x, y, fig}: Figure = arrFigures[i];
-        if (fig === 'square' && cursor.x > x && cursor.x < (x + 50) && cursor.y > y && cursor.y < (y + 50))  {
+      for (let i = 0; i < arrFigures.length; i += 1) {
+        const {x, y, fig}: Figure = arrFigures[i];
+        draw(x , y, canvas, fig, false );
+        arrFigures[i].isBorder = false;
+      }
+
+      for (let i = arrFigures.length - 1; i >= 0; i -= 1) {
+        const {x, y, fig}: Figure = arrFigures[i];
+        if ((fig === 'square' && cursor.x > x && cursor.x < (x + 50) && cursor.y > y && cursor.y < (y + 50)) || 
+        (fig === 'circle' && Math.sqrt((cursor.x - x - radiusCircle) ** 2 + (cursor.y - y - radiusCircle) ** 2) <= radiusCircle)) {
           draw(x , y, canvas, fig, true );
-          arrFigures.push(arrFigures[i]);
+          arrFigures.push({...arrFigures[i], isDrag: true, isBorder: true});
           arrFigures.splice(i, 1);
-          break;
-        } 
-        if (fig === 'circle' && Math.sqrt((cursor.x - x - radiusCircle) ** 2 + (cursor.y - y - radiusCircle) ** 2) <= radiusCircle)  {
-          draw(x , y, canvas, fig, true );
-          arrFigures.push(arrFigures[i]);
-          arrFigures.splice(i, 1);
+          coordCursorOnFigure = {
+            dx: cursor.x - x,
+            dy: cursor.y - y,
+          }
           break;
         } 
       }
     }
   }
-  function checkMouseUp() {
-    console.log('checkMouseUp')
+  function checkMouseUp(e: any) {
+    if (arrFigures.length) {
+      for (let i = 0; i < arrFigures.length; i += 1) {
+        if (arrFigures[i].isDrag) {
+          arrFigures[i].isDrag = false;
+          const cursor = {
+            x: e.clientX - e.target.getBoundingClientRect().x,
+            y: e.clientY - e.target.getBoundingClientRect().y,
+          };
+          arrFigures[i].x = cursor.x - coordCursorOnFigure.dx;
+          arrFigures[i].y = cursor.y - coordCursorOnFigure.dy;
+        }
+      }
+    }
   }
-
+  function checkMouseMove(e: any) {
+    if (arrFigures.length) {
+      const canvas = canvasRef.current;
+      canvas.getContext('2d').clearRect(0, 0, 700, 600);
+      for (let i = 0; i < arrFigures.length; i += 1) {
+        const {x, y, fig, isBorder}: Figure = arrFigures[i];
+        if (arrFigures[i].isDrag === true) {
+          const cursorMove = {
+            x: e.clientX - startDrag.x,
+            y: e.clientY - startDrag.y,
+          }
+          draw(Math.min(x + cursorMove.x, 650) , Math.min(y + cursorMove.y, 550), canvas, fig, true );
+        } else draw(x, y, canvas, fig, isBorder);
+      }
+    }
+  }
+  function checkMouseLeave(e) {
+    if (arrFigures.length) {
+      for (let i = 0; i < arrFigures.length; i += 1) {
+        if (arrFigures[i].isDrag) {
+          arrFigures[i].isDrag = false;
+          const cursor = {
+            x: e.clientX - e.target.getBoundingClientRect().x,
+            y: e.clientY - e.target.getBoundingClientRect().y,
+          };
+          arrFigures[i].x = Math.min(cursor.x - coordCursorOnFigure.dx, 650);
+          arrFigures[i].y = Math.min(cursor.y - coordCursorOnFigure.dy, 550);
+        }
+      }
+    }
+  }
   return (
-    <canvas ref={canvasRef} width='700' height="600" 
+    <canvas ref={canvasRef} width='700' height="600" className="canvas"
       onDragOver={(event)=>event.preventDefault()}
       onDrop={(event)=>dropHandler(event)}
       onMouseDown={checkMouseDown}
-      onMouseUp={checkMouseUp}>
+      onMouseUp={checkMouseUp}
+      onMouseMove={checkMouseMove}
+      onMouseLeave={checkMouseLeave}>
       Your browser do not support Canvas...
     </canvas>
   )

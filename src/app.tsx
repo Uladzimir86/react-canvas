@@ -32,7 +32,7 @@ const App = (): ReactElement => {
               >.</div>
             </div>
           </td>
-          <td>
+          <td className="section-canvas">
             <Canvas />
           </td>
         </tr>

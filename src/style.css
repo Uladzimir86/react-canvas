@@ -55,6 +55,10 @@ td:first-child {
   cursor: pointer;
 }
 .section-canvas {
-  height: 100%;
-  width: 100%;
+  position: relative;
+}
+.canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
 }
