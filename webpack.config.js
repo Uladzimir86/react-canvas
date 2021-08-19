@@ -33,7 +33,7 @@ module.exports = (env = {}) => {
     devtool: 'inline-source-map',
     output: {
       filename: 'main.js',
-      path: path.resolve(__dirname, 'dist'),
+      path: path.resolve(__dirname, 'docs'),
       clean: true,
     },
     module: {
@@ -76,7 +76,7 @@ module.exports = (env = {}) => {
       ],
     },
     devServer: {
-      contentBase: path.join(__dirname, 'dist'),
+      contentBase: path.join(__dirname, 'docs'),
       port: 9000,
       open: true,
       writeToDisk: true,
