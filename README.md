@@ -1,0 +1,1 @@
+https://uladzimir86.github.io/satellite-test-task/docs/index.html
